@@ -1,5 +1,4 @@
 import UploadIllustration from 'assets/upload.jpg';
-import AuthBackground from 'assets/auth-background.gif';
 import Menu from 'assets/menu.png';
 import Arrow_down from 'assets/arrow-down.png';
 import Plus from 'assets/plus.png';
@@ -8,7 +7,6 @@ import Pen from 'assets/pen.png';
 
 export const Images = {
   UPLOAD: UploadIllustration,
-  AUTH_BACKGROUND: AuthBackground,
   MENU: Menu,
   ARROW_DOWN: Arrow_down,
   PLUS: Plus,
