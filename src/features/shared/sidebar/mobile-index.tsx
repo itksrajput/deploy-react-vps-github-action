@@ -22,7 +22,7 @@ interface SidebarProps {
   role?: Role;
 }
 
-const Sidebar = ({ role = "admin" }: SidebarProps) => {
+const MobileSidebar = ({ role = "admin" }: SidebarProps) => {
   const menusMain = (MainMenus[role] || [])
     .filter((item) => !item.role || item.role.includes(role))
     .map((item) => {
@@ -56,7 +56,7 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
     .filter((item) => !item.children || item.children.length > 0);
 
   return (
-    <aside className="w-60 min-h-screen bg-white hidden lg:block shadow-lg p-4">
+    <aside className="w-60 min-h-screen bg-white  shadow-lg p-4">
       <Typography variant="h5" className="text-primary mb-5 px-4 py-2">
         LOGO
       </Typography>
@@ -85,4 +85,4 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
   );
 };
 
-export default Sidebar;
+export default MobileSidebar;

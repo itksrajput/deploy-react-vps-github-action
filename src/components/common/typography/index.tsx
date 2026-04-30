@@ -1,45 +1,75 @@
-import cn from '@/utils/cn';
-import React, { ElementType } from 'react';
+import type { ElementType, ReactNode } from "react";
+import cn from "../../../utils/cn";
 
-type Variant = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'body' | 'body-small' | 'small' | 'xsmall';
+type Variant =
+  | "h1"
+  | "h2"
+  | "h3"
+  | "h4"
+  | "h5"
+  | "h6"
+  | "subtitle"
+  | "body"
+  | "p"
+  | "span"
+  | "caption"
+  | "small"
+  | "muted";
 
-interface Props {
-  variant: Variant;
-  children: React.ReactNode;
-  className?: string;
+interface TypographyProps {
+  variant?: Variant;
   as?: ElementType;
+  className?: string;
+  children: ReactNode;
+  id?: string | number;
 }
 
-const tags: Record<Variant, ElementType> = {
-  h1: 'h1',
-  h2: 'h2',
-  h3: 'h3',
-  h4: 'h4',
-  h5: 'h5',
-  body: 'p',
-  'body-small': 'p',
-  small: 'span',
-  xsmall: 'span',
-};
-
 const sizes: Record<Variant, string> = {
-  h1: 'text-5xl font-semibold sm:text-4xl',
-  h2: 'text-4xl font-semibold sm:text-3xl',
-  h3: 'text-3xl font-semibold sm:text-2xl',
-  h4: 'text-2xl font-semibold sm:text-1xl',
-  h5: 'text-xl font-semibold sm:text-lg',
-  body: 'text-lg sm:text-md',
-  'body-small': 'text-md sm:text-sm',
-  small: 'text-sm sm:text-xs',
-  xsmall: 'text-xs',
+  h1: "text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight",
+  h2: "text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold tracking-tight",
+  h3: "text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold",
+  h4: "text-lg md:text-xl lg:text-2xl xl:text-3xl font-medium",
+  h5: "text-base md:text-lg lg:text-xl xl:text-2xl font-medium",
+  h6: "text-sm md:text-base lg:text-lg xl:text-xl font-semibold",
+
+  subtitle: "text-base md:text-lg lg:text-xl xl:text-2xl",
+  body: "text-xs lg:text-sm  2xl:text-base font-medium text-text",
+  p: "text-base md:text-lg lg:text-xl xl:text-2xl leading-relaxed  text-text",
+  span: "text-base md:text-lg lg:text-xl xl:text-2xl",
+  caption: "text-sm md:text-base lg:text-lg xl:text-xl",
+  small: "text-xs  2xl:text-sm text-text font-normal",
+  muted: "text-sm md:text-base lg:text-lg xl:text-xl",
 };
 
-export const Typography = ({ variant, children, className, as }: Props) => {
+const tags: Record<Variant, ElementType> = {
+  h1: "h1",
+  h2: "h2",
+  h3: "h3",
+  h4: "h4",
+  h5: "h5",
+  h6: "h6",
+  subtitle: "p",
+  body: "p",
+  p: "p",
+  span: "span",
+  caption: "span",
+  small: "small",
+  muted: "span",
+};
+
+export const Typography = ({
+  variant = "body",
+  as,
+  className,
+  children,
+  id,
+}: TypographyProps) => {
+  const Component: ElementType = as || tags[variant];
   const sizeClasses = sizes[variant];
-  const Tag = as || tags[variant];
-  return className ? (
-    <Tag className={cn(sizeClasses, className)}>{children}</Tag>
-  ) : (
-    <Tag className={`${sizeClasses}`}>{children}</Tag>
+
+  return (
+    <Component id={id} className={cn(sizeClasses, className)}>
+      {children}
+    </Component>
   );
 };
