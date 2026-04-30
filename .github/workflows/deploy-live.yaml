@@ -45,7 +45,7 @@ jobs:
       - name: Build
         working-directory: ./
         run: |
-          npm run build:production
+          npm run build
       
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
