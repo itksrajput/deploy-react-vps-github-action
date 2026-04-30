@@ -62,7 +62,7 @@ jobs:
             ./dist/ $EC2_USER@$EC2_HOST:/tmp/temp-build/
 
           # Move files into the final deployment directory
-          ssh -i ec2_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
+          ssh -i server_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
             sudo mkdir -p /var/www/html/web/demo-react/
             sudo rm -rf /var/www/html/web/demo-react/*
             sudo rsync -av --delete /tmp/temp-build/ /var/www/html/web/demo-react/
