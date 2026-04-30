@@ -11,33 +11,18 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.11.0]
+        node-version: [22.x]
 
     steps:
       - name: 📥 Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🟢 Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Cache node modules
-        id: cache-nodemodules
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
-        with:
-          # caching node_modules
-          path: node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
       - name: Install Dependencies
-        if: steps.cache-nodemodules.outputs.cache-hit != 'true'
         working-directory: ./
         run: |
           npm ci --legacy-peer-deps
@@ -47,10 +32,15 @@ jobs:
         run: |
           npm run build
       
-      - name: Set up SSH
+      - name: Setup SSH Key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEV_KEY }}
+          EC2_HOST: ${{ secrets.DEV_HOST }}
         run: |
-          echo "${{ secrets.DEV_KEY }}" | base64 --decode > server_key.pem
-          chmod 400 server_key.pem
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" | base64 --decode > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
 
       - name: Copy build on server
         env:
@@ -58,15 +48,26 @@ jobs:
           EC2_USER: ${{ secrets.DEV_USER }}
         run: |
           # Upload build to a temporary directory on the server
-          rsync -avz --delete -e "ssh -i server_key.pem -o StrictHostKeyChecking=no" \
+          rsync -avz --delete -e "ssh -i ~/.ssh/id_rsa" \
             ./dist/ $EC2_USER@$EC2_HOST:/tmp/temp-build/
 
-          # Move files into the final deployment directory
-          ssh -i server_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
+          # Atomic deployment
+          ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
             sudo mkdir -p /var/www/html/web/demo-react/
-            sudo rm -rf /var/www/html/web/demo-react/*
+
+             # Backup current deployment
+            if [ -d "/var/www/html/web/demo-react" ]; then
+              sudo rm -rf /var/www/html/web/demo-react-backup
+              sudo cp -R /var/www/html/web/demo-react /var/www/html/web/demo-react-backup
+            fi
+
+            # Replace deployment
             sudo rsync -av --delete /tmp/temp-build/ /var/www/html/web/demo-react/
+
+            # Permissions
             sudo chown -R www-data:www-data /var/www/html/web/demo-react/
             sudo chmod -R 755 /var/www/html/web/demo-react/
+
+            # Cleanup
             rm -rf /tmp/temp-build/
           EOF
