@@ -21,6 +21,11 @@ jobs:
       matrix:
         node-version: [24]
 
+    env:
+      APP_PATH: /var/www/html/web/demo-react
+      BACKUP_PATH: /var/www/html/web/demo-react-backup
+      TEMP_PATH: /tmp/temp-build
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -58,26 +63,19 @@ jobs:
           EC2_HOST: ${{ secrets.DEV_HOST }}
           EC2_USER: ${{ secrets.DEV_USER }}
         run: |
-          echo "Creating temp directory on server..."
-
-          sshpass -p "$EC2_PASS" ssh \
-            -o StrictHostKeyChecking=no \
-            ${EC2_USER}@${EC2_HOST} "mkdir -p ${TEMP_PATH}"
+          # Create temp folder
+          ssh -i ~/.ssh/id_rsa ${EC2_USER}@${EC2_HOST} "mkdir -p ${TEMP_PATH}"
           
           # Upload build to temp directory first
-          sshpass -p "$EC2_PASS" rsync -az --delete \
-            -e "ssh -o StrictHostKeyChecking=no" \
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_rsa" \
             ./dist/ \
-            ${EC2_USER}@${EC2_HOST}:${TEMP_PATH}/
-
+           ${EC2_USER}@${EC2_HOST}:${TEMP_PATH}/
+           
           # Atomic deployment on server
           ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
             set -e
-
-            APP_PATH="/var/www/html/web/demo-react"
-            BACKUP_PATH="/var/www/html/web/demo-react-backup"
-            TEMP_PATH="/tmp/temp-build"
-
+            
             sudo mkdir -p $APP_PATH
 
             # Backup previous deployment
