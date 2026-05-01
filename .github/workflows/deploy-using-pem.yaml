@@ -73,7 +73,7 @@ jobs:
           # Atomic deployment on server
           ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
             set -e
-            APP_PATH ="/var/www/html/web/demo-react"
+            APP_PATH="/var/www/html/web/demo-react"
             BACKUP_PATH="/var/www/html/web/demo-react-backup"
             TEMP_PATH="/tmp/temp-build"
       
