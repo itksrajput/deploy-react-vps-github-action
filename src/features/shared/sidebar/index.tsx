@@ -58,7 +58,7 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
   return (
     <aside className="w-60 min-h-screen bg-white hidden lg:block shadow-lg p-4">
       <Typography variant="h5" className="text-primary mb-5 px-4 py-2">
-        LOGO V1
+        LOGO V2
       </Typography>
       <div className="space-y-2 border-b border-gray-200">
         <Typography variant="small" as={"p"} className="px-4 py-2 my-2 ">
