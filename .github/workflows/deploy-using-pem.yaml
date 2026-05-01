@@ -58,11 +58,17 @@ jobs:
           EC2_HOST: ${{ secrets.DEV_HOST }}
           EC2_USER: ${{ secrets.DEV_USER }}
         run: |
+          echo "Creating temp directory on server..."
+
+          sshpass -p "$EC2_PASS" ssh \
+            -o StrictHostKeyChecking=no \
+            ${EC2_USER}@${EC2_HOST} "mkdir -p ${TEMP_PATH}"
+          
           # Upload build to temp directory first
-          rsync -avz --delete \
-            -e "ssh -i ~/.ssh/id_rsa" \
+          sshpass -p "$EC2_PASS" rsync -az --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
             ./dist/ \
-            $EC2_USER@$EC2_HOST:/tmp/temp-build/
+            ${EC2_USER}@${EC2_HOST}:${TEMP_PATH}/
 
           # Atomic deployment on server
           ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
