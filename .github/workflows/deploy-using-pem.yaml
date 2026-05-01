@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: reactapp-deploy-main
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -73,9 +77,12 @@ jobs:
             # Backup previous deployment
             if [ -d "$APP_PATH" ]; then
               sudo rm -rf $BACKUP_PATH
-              sudo cp -R $APP_PATH $BACKUP_PATH
+              sudo cp -a $APP_PATH $BACKUP_PATH
             fi
 
+            # Clean current deployment
+            sudo rm -rf ${APP_PATH:?}/*
+  
             # Deploy new build
             sudo rsync -av --delete $TEMP_PATH/ $APP_PATH/
 
