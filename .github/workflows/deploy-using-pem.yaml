@@ -77,7 +77,8 @@ jobs:
             set -e
             
             sudo mkdir -p $APP_PATH
-
+            sudo mkdir -p $BACKUP_PATH
+            
             # Backup previous deployment
             if [ -d "$APP_PATH" ]; then
               sudo rm -rf $BACKUP_PATH
