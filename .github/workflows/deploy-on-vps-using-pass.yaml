@@ -73,15 +73,10 @@ jobs:
               # Create app directory if it doesn't exist
               sudo mkdir -p ${APP_PATH}
 
-              # Remove old backup if exists
-              sudo rm -rf ${BACKUP_PATH}
-
-              # Backup current live build (only if app exists and has files)
-              if [ -d "${APP_PATH}" ] && [ "$(ls -A ${APP_PATH} 2>/dev/null)" ]; then
-                echo "Creating backup of current deployment..."
-                sudo cp -a ${APP_PATH} ${BACKUP_PATH}
-              else
-                echo "No existing deployment found. Skipping backup."
+              # Backup previous deployment
+              if [ -d "$APP_PATH" ]; then
+                sudo rm -rf $BACKUP_PATH
+                sudo cp -a $APP_PATH $BACKUP_PATH
               fi
 
               # Clean current deployment
@@ -91,11 +86,10 @@ jobs:
               sudo rsync -a --delete ${TEMP_PATH}/ ${APP_PATH}/
 
               # Set permissions
-              sudo chown -R www-data:www-data ${APP_PATH}
-              sudo find ${APP_PATH} -type d -exec chmod 755 {} \;
-              sudo find ${APP_PATH} -type f -exec chmod 644 {} \;
+              sudo chown -R www-data:www-data $APP_PATH
+              sudo chmod -R 755 $APP_PATH
 
-              # Cleanup temp folder
+              # Cleanup
               rm -rf ${TEMP_PATH}
 
               echo "Deployment completed successfully."
