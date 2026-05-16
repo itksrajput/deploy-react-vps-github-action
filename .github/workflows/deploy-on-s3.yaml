@@ -34,7 +34,7 @@ jobs:
           package-manager-cache: true
 
       - name: Install Dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm i --legacy-peer-deps
 
       - name: Build Project
         run: npm run build
