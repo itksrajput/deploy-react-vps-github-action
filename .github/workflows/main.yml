@@ -1,57 +1,88 @@
-name: Deploy React Build on AWS S3
+name: Deploy React App to AWS S3
+
 on:
   push:
     branches:
       - main
 
 concurrency:
-  group: reactapp-deploy-s3-main
+  group: react-s3-deploy-main
   cancel-in-progress: true
 
 permissions:
   contents: read
-      
+
 jobs:
-  build:
-    name: Build and Deploy React App on S3
+  deploy:
+    name: Build and Deploy React App
     runs-on: ubuntu-latest
-    env: 
-      DIST: dist
 
     strategy:
       matrix:
-        node-version: [24]
+        node-version: [20]
+
+    env:
+      DIST: dist
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-          package-manager-cache: true
 
       - name: Install Dependencies
-        run: npm i --legacy-peer-deps
+        run: |
+          npm install --legacy-peer-deps
 
-      - name: Build Project
-        run: npm run build
+      - name: Build Application
+        run: |
+          npm run build
+
+      - name: Verify Build Files
+        run: |
+          echo "Build directory contents:"
+          ls -la
+          ls -la ${{ env.DIST }}
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Copy files to the S3 bucket with AWS CLI
+      - name: Verify AWS Access
         run: |
-          aws s3 sync --delete ${{ env.DIST }} s3://${{ secrets.AWS_BUCKET }}
+          aws sts get-caller-identity
+          aws s3 ls
 
-      - name: CloudFront invalidation  
+      - name: Validate GitHub Secrets
+        run: |
+          if [ -z "${{ secrets.AWS_BUCKET }}" ]; then
+            echo "AWS_BUCKET secret is missing"
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.AWS_REGION }}" ]; then
+            echo "AWS_REGION secret is missing"
+            exit 1
+          fi
+
+      - name: Upload Files to S3
+        run: |
+          echo "Deploying to bucket: ${{ secrets.AWS_BUCKET }}"
+          aws s3 sync ${{ env.DIST }} s3://${{ secrets.AWS_BUCKET }} --delete
+
+      - name: Create CloudFront Invalidation
         run: |
           aws cloudfront create-invalidation \
-          --distribution-id ${{ secrets.DIST_ID }} \
-          --path "/*"
+            --distribution-id ${{ secrets.DIST_ID }} \
+            --paths "/*"
+
+      - name: Deployment Successful
+        run: |
+          echo "Application deployed successfully"
