@@ -50,7 +50,7 @@ jobs:
         run: |
           aws s3 sync --delete ${{ env.DIST }} s3://${{ secrets.AWS_BUCKET }}
 
-      - name: CloudFront invalidation
+      - name: CloudFront invalidation  
         run: |
           aws cloudfront create-invalidation \
           --distribution-id ${{ secrets.DIST_ID }} \
